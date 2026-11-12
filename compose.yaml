@@ -1,0 +1,17 @@
+# LocalStack: simula AWS (solo S3) en tu computadora.
+# Puerto 4566 expuesto SOLO en localhost (127.0.0.1), no en toda la red.
+# NO se monta /var/run/docker.sock: S3 no lo necesita y montarlo es un riesgo de container breakout.
+services:
+  localstack:
+    image: localstack/localstack:latest
+    container_name: localstack
+    ports:
+      - "127.0.0.1:4566:4566"
+    environment:
+      - SERVICES=s3
+      - LOCALSTACK_AUTH_TOKEN=${LOCALSTACK_AUTH_TOKEN}
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:4566/_localstack/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10

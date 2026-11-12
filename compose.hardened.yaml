@@ -1,0 +1,30 @@
+# Compose fortificado: cada directiva reduce un riesgo detectado en la auditoría.
+services:
+  web:
+    build: .
+    container_name: web-hardened
+
+    # Puerto publicado SOLO en localhost. Equivale a cerrar el puerto al mundo (0.0.0.0/0).
+    ports:
+      - "127.0.0.1:8080:8080"
+
+    # Usuario no privilegiado (refuerza USER appuser del Dockerfile). Principio de menor privilegio.
+    user: "10001:10001"
+
+    # Sistema de archivos en solo lectura: una intrusión no puede modificar archivos del sistema.
+    read_only: true
+
+    # Única zona escribible, en memoria y sin ejecución de binarios.
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+
+    # Quitar todas las capabilities de Linux; la app no necesita ninguna.
+    cap_drop:
+      - ALL
+
+    # Impide ganar privilegios nuevos (sudo, setuid).
+    security_opt:
+      - no-new-privileges:true
+
+    # NO se monta /var/run/docker.sock (evita container breakout).
+    restart: unless-stopped
